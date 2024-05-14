@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Punkt-Spiel</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .point {
+            position: absolute;
+            border-radius: 50%;
+            background-color: red;
+            cursor: pointer;
+        }
+        #game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2em;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-over">Game Over</div>
+    <script>
+        const points = [];
+        const minDistance = 50; // Mindestabstand zwischen den Punkten
+        let gameRunning = true;
+
+        function createPoint() {
+            const point = document.createElement('div');
+            point.classList.add('point');
+            point.style.width = '10px';
+            point.style.height = '10px';
+            point.size = 10;
+            point.growthRate = Math.random() * 2 + 0.5;
+            point.style.left = Math.random() * (window.innerWidth - 20) + 'px';
+            point.style.top = Math.random() * (window.innerHeight - 20) + 'px';
+
+            point.addEventListener('click', () => {
+                if (gameRunning) {
+                    document.body.removeChild(point);
+                    points.splice(points.indexOf(point), 1);
+                }
+            });
+
+            document.body.appendChild(point);
+            points.push(point);
+        }
+
+        function updatePoints() {
+            if (!gameRunning) return;
+            for (const point of points) {
+                point.size += point.growthRate;
+                point.style.width = point.size + 'px';
+                point.style.height = point.size + 'px';
+                point.style.left = parseFloat(point.style.left) - point.growthRate / 2 + 'px';
+                point.style.top = parseFloat(point.style.top) - point.growthRate / 2 + 'px';
+            }
+
+            checkCollisions();
+            requestAnimationFrame(updatePoints);
+        }
+
+        function checkCollisions() {
+            for (let i = 0; i < points.length; i++) {
+                for (let j = i + 1; j < points.length; j++) {
+                    const point1 = points[i];
+                    const point2 = points[j];
+                    const dx = parseFloat(point1.style.left) + point1.size / 2 - (parseFloat(point2.style.left) + point2.size / 2);
+                    const dy = parseFloat(point1.style.top) + point1.size / 2 - (parseFloat(point2.style.top) + point2.size / 2);
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+
+                    if (distance < (point1.size + point2.size) / 2) {
+                        gameOver();
+                        return;
+                    }
+                }
+            }
+        }
+
+        function gameOver() {
+            gameRunning = false;
+            document.getElementById('game-over').style.display = 'block';
+        }
+
+        function startGame() {
+            setInterval(createPoint, 1000);
+            requestAnimationFrame(updatePoints);
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
